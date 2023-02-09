@@ -86,7 +86,7 @@ class nlayer:
         else:
             print("error, doesn't support decrease.")
 
-    def autoCorrectWeights(self, regenerateAll=0):
+    def autoCorrectWeights(self, regenerateAll=0, cachedInputSize=0):
         if(regenerateAll):
             sumOfInputs = 0
             for layr in self.input_layers:
@@ -95,7 +95,38 @@ class nlayer:
             self.weights = np.random.rand(self.shape, sumOfInputs) - 0.5
             
         else:
-            pass
+            if(self.weights.shape[0] != self.shape):
+                if(self.weights.shape[0] > self.shape):
+                    print("Error weight matrix has less rows then necessary")
+                    ## Need to generate new weight rows
+                if(self.weights.shape[0] < self.shape):
+                    if(telemetry): print("Adding to weight.shape[0]")
+
+                    # Generating new weights for weights matrix but shape value is already present so updateShapeValue = 0
+                    self.addWidth_to_Layer(self.shape - self.weights.shape[0], updateShapeValue=0)
+
+            ## checking weight matrix according to the input layers
+            input_size = 0
+            if(cachedInputSize == 0):
+                ## Calculate size of input manually
+                for layr in self.input_layers:
+                    input_size += layr.shape
+            else:
+                input_size = cachedInputSize
+                
+            ## Use size of cached input value
+            if(input_size > self.weights.shape[1]):
+                if(telemetry): print("!!!SHAPE MISMATCH!!!", "inputArr.shape[0] =", input_size, "self.weights.shape[1] =", self.weights.shape[1])
+                ## Adjust matrix dimension & adding new random weights to match size
+                generatedColumn = np.random.rand(self.weights.shape[0], (input_size - self.weights.shape[1])) - 0.5
+                self.weights = np.concatenate((self.weights, generatedColumn), axis=1)
+
+
+            elif(input_size < self.weights.shape[1]):       ## input layer may have been removed causing weight matrix to be larger than inputs
+                print("!! Input Layer smaller than expected. !!", "inputArr.shape[0] =", input_size, "self.weights.shape[1] =", self.weights.shape[1])
+                return -1
+                # TODO:
+                # pass
 
 
     def applyActivationFn(self,rawActivation):
@@ -127,9 +158,9 @@ class nlayer:
         if(self.cachedRun == runNum or self.cachedRun == -1 or self.beingEvaluated == 1):   ## if activation was already calculated for this run OR is an input layer
             if(telemetry): 
                 if(self.cachedRun == -1):
-                    print("Provided input from cache")
+                    print("Provided input from cache for runNum =", runNum)
                 else:
-                    print("Re-used Cached Value")
+                    print("Re-used Cached Value, runNum = ", runNum)
             return(self.cacheValue)
         else:
             ## compiling a numpy array of all activation values listed in input layer. 
@@ -138,7 +169,10 @@ class nlayer:
 
             self.beingEvaluated = 1
 
+            input_size = 0
+
             for layrIndx in range(len(self.input_layers)):
+                input_size += self.input_layers[layrIndx].shape
                 if(inputArr.shape[1] > 0):      ##  Handle first situation when inputArr is empty.
                     inputArr = np.concatenate((inputArr, self.input_layers[layrIndx].getActivation(runNum=runNum)))
                 else:
@@ -149,34 +183,38 @@ class nlayer:
 
             ##  Checking dimensions of input matrix
             if(len(inputArr.shape) == 1):
-                iftelemetry: print("Input values should be a 2D array.")
+                if(telemetry): print("Input values should be a 2D array.")
                 inputArr = inputArr[:, np.newaxis]
 
-            ## If weights column have wrong
-            if(self.weights.shape[0] != self.shape):
-                if(self.weights.shape[0] > self.shape):
-                    print("Error weight matrix has less weights then necessary")
-                if(self.weights.shape[0] < self.shape):
-                    iftelemetry: print("Adding to weight.shape[0]")
 
-                    # Generating new weights for weights matrix but shape value is already present so updateShapeValue = 0
-                    self.addWidth_to_Layer(self.shape - self.weights.shape[0], updateShapeValue=0)
+            self.autoCorrectWeights(regenerateAll=0, cachedInputSize=input_size)
+
+            ## If weights column have wrong
+            # if(self.weights.shape[0] != self.shape):
+            #     if(self.weights.shape[0] > self.shape):
+            #         print("Error weight matrix has less rows then necessary")
+            #         ## Need to generate new weight rows
+            #     if(self.weights.shape[0] < self.shape):
+            #         if(telemetry): print("Adding to weight.shape[0]")
+
+            #         # Generating new weights for weights matrix but shape value is already present so updateShapeValue = 0
+            #         self.addWidth_to_Layer(self.shape - self.weights.shape[0], updateShapeValue=0)
 
 
 
 
 
             # Checking if shape matches
-            if(inputArr.shape[0] > self.weights.shape[1]):
-                iftelemetry: print("!!!SHAPE MISMATCH!!!", "inputArr.shape[0] =", inputArr.shape[0], "self.weights.shape[1] =", self.weights.shape[1])
-                ## Adjust matrix dimension & adding new random weights to match size
-                generatedColumn = np.random.rand(self.weights.shape[0], (inputArr.shape[0] - self.weights.shape[1])) - 0.5
-                self.weights = np.concatenate((self.weights, generatedColumn), axis=1)
+            # if(inputArr.shape[0] > self.weights.shape[1]):
+            #     if(telemetry): print("!!!SHAPE MISMATCH!!!", "inputArr.shape[0] =", inputArr.shape[0], "self.weights.shape[1] =", self.weights.shape[1])
+            #     ## Adjust matrix dimension & adding new random weights to match size
+            #     generatedColumn = np.random.rand(self.weights.shape[0], (inputArr.shape[0] - self.weights.shape[1])) - 0.5
+            #     self.weights = np.concatenate((self.weights, generatedColumn), axis=1)
 
 
-            elif(inputArr.shape[0] < self.weights.shape[1]):       ## input layer may have been removed causing weight matrix to be larger than inputs
-                print("!! Input Layer smaller than expected. !!", "inputArr.shape[0] =", inputArr.shape[0], "self.weights.shape[1] =", self.weights.shape[1])
-                return -1
+            # elif(inputArr.shape[0] < self.weights.shape[1]):       ## input layer may have been removed causing weight matrix to be larger than inputs
+            #     print("!! Input Layer smaller than expected. !!", "inputArr.shape[0] =", inputArr.shape[0], "self.weights.shape[1] =", self.weights.shape[1])
+            #     return -1
             
             
             rawActivation = np.matmul(self.weights, inputArr) + self.bias
@@ -186,7 +224,7 @@ class nlayer:
             # self.cacheValue = activation          ## storing a pointer to activation calculated
             self.cacheValue = np.copy(activation)   ## duplicating array
 
-            iftelemetry: print("activation =", activation, "& cached")  
+            if(telemetry): print("activation =", activation, "& cached")  
 
             return activation
 
