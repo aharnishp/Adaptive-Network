@@ -1,6 +1,6 @@
 import numpy as np
 
-telemetry = 1
+telemetry = 0
 
 class nlayer:
     id = 0

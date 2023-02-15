@@ -1,7 +1,7 @@
 import numpy as np
 from .nlayer import nlayer
 
-telemetry = 1
+telemetry = 0
 
                 
 
@@ -44,6 +44,7 @@ class nnetwork:
         self.output_layer.weights = None
         self.output_layer.input_layers=[]
         self.output_layer.addInputLayer(newLayer)
+        self.output_layer.autoCorrectWeights(regenerateAll=0)
 
         ## Transferring Weight matrix
 
