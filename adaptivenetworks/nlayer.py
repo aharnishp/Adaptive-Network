@@ -9,6 +9,7 @@ class nlayer:
     weights = None          ## assuming all input activations are concatenated (sorted on layer ID).
     bias = np.array([])      ## store self biases
     activationFn = "linear"         ## store self activation function
+    separationFn = None
     learningRate = 0.05
 
 
@@ -35,12 +36,13 @@ class nlayer:
 
 
     ## Methods
-    def __init__(self, shape=1, inputLayers=[], isInput=0, setInputValues=[], activationFn="linear", isDynamic=0, learningRate=0.05) -> None:
+    def __init__(self, shape=1, inputLayers=[], isInput=0, setInputValues=[], activationFn="linear", isDynamic=0, learningRate=0.05, separationFn=None) -> None:
         self.shape = shape
         self.activationFn = activationFn
         self.bias = np.random.rand(shape, 1)
         self.input_layers = []  ## Clearing on reinitializing
         self.learningRate = 0.05
+        self.separationFn=separationFn
 
         if(isDynamic==0):
             self.isDynamic = 0

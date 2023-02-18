@@ -34,9 +34,9 @@ class nnetwork:
             self.output_layer = nlayer(output_shape, inputLayers=[self.input_layer], isDynamic=1, learningRate=learningRate)
 
 
-    def addLayerAtLast(self, shape, isDynamic=1, activationFn="linear", transferWeights=0, learningRate=learningRate):
+    def addLayerAtLast(self, shape, isDynamic=1, activationFn="linear", transferWeights=0, learningRate=learningRate, separationFn=None):
         oldInputs = self.output_layer.input_layers
-        newLayer = nlayer(shape=shape, inputLayers=oldInputs, isDynamic=isDynamic, activationFn=activationFn, learningRate=learningRate)
+        newLayer = nlayer(shape=shape, inputLayers=oldInputs, isDynamic=isDynamic, activationFn=activationFn, learningRate=learningRate, separationFn=separationFn)
 
         if(transferWeights):
             newLayer.weights = self.output_layer.weights
