@@ -1,5 +1,7 @@
 # Adaptive-Network
 
+### Note: This repository is Deprecated, due to severe changes required like lack of support for convolutional layers.
+
 ## Description
 
 Framework implementation of deep learning model that can increase nodes at appropriate layers and may even form connections(WIP).
